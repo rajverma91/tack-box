@@ -1,0 +1,269 @@
+{% comment %}
+This is a quiz form to collect user choices, send an email, and redirect to a specific URL.
+{% endcomment %}
+  <div class="contact page-width  section-{{ section.id }}-padding">
+<div class="quiz-container">
+  <div class="ansWrapper">
+  <h2>Select Your Answers</h2>
+
+    <div class="question" data-question="1">
+        <p>1. Do you compete?</p>
+        <div class="options">
+            <label><input type="radio" name="q1" value="a"><span class="checkmark"></span> Never</label>
+            <label><input type="radio" name="q1" value="b"><span class="checkmark"></span> Unrated competitions and/or attend clinics</label>
+            <label><input type="radio" name="q1" value="c"><span class="checkmark"></span> Rated competitions (USEF & similar)</label>
+        </div>
+    </div>
+
+    <div class="question" data-question="2">
+        <p>2. Describe your horse’s activity level</p>
+        <div class="options">
+              <label> <input type="radio" name="q2" value="a"><span class="checkmark"></span> Glorious life of leisure</label>
+            <label><input type="radio" name="q2" value="b"><span class="checkmark"></span> Works 1-4 times per week</label>
+            <label><input type="radio" name="q2" value="c"><span class="checkmark"></span> Works 5+ days</label>
+        </div>
+    </div>
+
+    <div class="question" data-question="3">
+        <p>3. How long have you been involved with horses?</p>
+        <div class="options">
+            <label><input type="radio" name="q3" value="a"><span class="checkmark"></span> Just starting!</label>
+            <label><input type="radio" name="q3" value="b"><span class="checkmark"></span> 2-5 years</label>
+            <label><input type="radio" name="q3" value="c"><span class="checkmark"></span> 6-10 years</label>
+            <label><input type="radio" name="q3" value="d"><span class="checkmark"></span> Longer than I’m willing to write down!</label>
+        </div>
+    </div>
+
+    <div class="question" data-question="4">
+        <p>4. How old is your horse?</p>
+        <div class="options">
+            <label><input type="radio" name="q4" value="a"><span class="checkmark"></span> Yearling to 5 years</label>
+            <label><input type="radio" name="q4" value="b"><span class="checkmark"></span> 6-15</label>
+            <label><input type="radio" name="q4" value="c"><span class="checkmark"></span> 16-24 (Senior)</label>
+            <label><input type="radio" name="q4" value="d"><span class="checkmark"></span> 25+ (Senior)</label>
+        </div>
+    </div>
+
+    <div class="question" data-question="5">
+        <p>5. What climate does your horse live in?</p>
+        <div class="options">
+            <label><input type="radio" name="q5" value="a"><span class="checkmark"></span> It’s seasonal - give it a minute, it'll change</label>
+            <label><input type="radio" name="q5" value="b"><span class="checkmark"></span> Wet & hot more of the year</label>
+            <label><input type="radio" name="q5" value="c"><span class="checkmark"></span> Dry & hot more of the year</label>
+            <label><input type="radio" name="q5" value="d"><span class="checkmark"></span> Wet & cool more of the year</label>
+        </div>
+    </div>
+
+    <div class="formEmail">
+      <input type="email" id="user_email" placeholder="Enter your email" required>
+       <button id="submit_quiz">Submit</button>
+    </div>
+  </div>
+
+    <p class="quiz-result"></p>
+  <div class="editButtonBox">
+    <h4></h4>
+
+  </div>
+<div class="collection-products-grid collection-products-gridStyle">
+  {% for collection in collections %}
+    <div class="collection-item" data-category="{{ collection.title | downcase | replace: ' ', '-' }}" style="display: none;">
+      {% for product in collection.products %}
+        <div class="product-item">
+          <a href="{{ product.url }}">
+            <img src="{{ product.featured_image | img_url: 'medium' }}" alt="{{ product.title }}">
+            <h3>{{ product.title }}</h3>
+            <p>{{ product.price | money }}</p>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+
+
+</div>
+  </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function(){
+   $(window).on("load", function() {
+        $("html, body").animate({ scrollTop: 0 }, "fast");
+    });
+    
+    $("#submit_quiz").click(function(){
+        let answers = {};
+        let email = $("#user_email").val().trim();
+       setTimeout(function(){
+                $(".ansWrapper").fadeOut();
+            }, 1000);
+ $(".ansWrapper").hide();
+        $(".question").each(function(){
+            let questionId = $(this).data("question");
+            let selectedOption = $(this).find("input[type='radio']:checked").val();
+            
+            if (selectedOption) {
+                answers[questionId] = selectedOption;
+            }
+        });
+
+        if (Object.keys(answers).length < $(".question").length) {
+            $(".quiz-result").text("Please answer all questions.");
+            return;
+        }
+
+        if (email === "") {
+            $(".quiz-result").text("Please enter your email.");
+            return;
+        }
+
+        let category = "default";
+        let recommendedProducts = [];
+
+        if (answers[1] === "a" && answers[2] === "a" && ["a", "b"].includes(answers[4])) {
+            if (answers[5] === "a") {
+                category = "maintenance-seasonal";
+                recommendedProducts = ["UltraShield Red", "UltraShield Fly Mask", "Thrush", "Silver Honey Scratches", "Silver Honey Rapid Wound Spray"];
+            } else if (answers[5] === "c") {
+                category = "maintenance-dry-conditions";
+                recommendedProducts = ["UltraShield Red", "UltraShield Fly Mask", "Santa Fe", "Silver Honey Rapid Wound Spray"];
+            } else if (["b", "d"].includes(answers[5])) {
+                category = "maintenance-wet-conditions";
+                recommendedProducts = ["UltraShield Red", "UltraShield Fly Mask", "Thrush", "Fungasol", "Silver Honey Scratches", "Silver Honey Rapid Wound Spray"];
+            }
+        } 
+        
+        if (answers[1] === "a" && answers[2] === "a" && ["c", "d"].includes(answers[4])) {
+            if (answers[5] === "c") {
+                category = "maintenance-dry-conditions-senior";
+                recommendedProducts = ["UltraShield Red", "UltraShield Fly Mask", "Santa Fe", "Bute-Less", "Silver Honey Rapid Wound Spray", "The Missing Link Senior Supplement"];
+            } else if (["b", "d"].includes(answers[5])) {
+                category = "maintenance-wet-conditions-senior";
+                recommendedProducts = ["UltraShield Red", "UltraShield Fly Mask", "Thrush", "Fungasol", "Bute-Less", "The Missing Link Senior Supplement"];
+            }
+        }
+
+       // **Pleasure Categories**
+        if (["a", "b"].includes(answers[1]) && ["b", "c"].includes(answers[2]) && ["b", "c", "d"].includes(answers[3])) {
+            if (answers[5] === "a") {
+                category = "Pleasure Seasonal";
+                recommendedProducts = ["UltraShield Sport", "UltraShield Red", "UltraShield Fly Mask", "ShowSheen Polish", "ShowSheen 2-In-1", "ShowSheen Whitener", "Fungasol (all)", "AVL Liquid + Gel", "Flex+Max", "Hoof Builder", "Hooflex Liquid", "Thrush", "Horseman’s One Step", "Leather Therapy (top 6)", "CoolDown"];
+            } else if (["b", "d"].includes(answers[5])) {
+                category = "Pleasure Wet Conditions";
+                recommendedProducts = ["UltraShield Sport", "UltraShield Fly Mask", "ShowSheen Polish", "ShowSheen 2-In-1", "ShowSheen Whitener", "Fungasol (all)", "AVL Liquid + Gel", "Flex+Max", "Hoof Builder", "Hooflex Liquid", "Horseman’s One Step", "Leather Therapy (top 6)", "Thrush", "UltraShield Fly Mask With Ears", "CoolDown"];
+            } else if (answers[5] === "c") {
+                category = "Pleasure Dry Conditions";
+                recommendedProducts = ["UltraShield Red", "ShowSheen Polish", "ShowSheen 2-In-1", "ShowSheen Whitener", "Fungasol (all)", "AVL Liquid + Gel", "Flex+Max", "Hoof Builder", "Hooflex Liquid", "Horseman’s One Step", "Leather Therapy (top 6)", "UltraShield Red", "UltraShield Fly Mask No Ears", "Santa Fe", "CoolDown"];
+            }
+        }
+        if (["a", "b"].includes(answers[1]) && ["b", "c"].includes(answers[2]) && ["b", "c", "d"].includes(answers[3]) && ["c", "d"].includes(answers[4]) && answers[5] === "c") {
+            category = "Pleasure Dry Conditions + Senior";
+            recommendedProducts = ["UltraShield Sport", "ShowSheen Polish", "ShowSheen 2-In-1", "ShowSheen Whitener", "Fungasol (all)", "AVL Liquid + Gel", "Flex+Max", "Hoof Builder", "Hooflex Liquid", "Horseman’s One Step", "Leather Therapy (top 6)", "UltraShield Red", "UltraShield Fly Mask No Ears", "Santa Fe", "Bute-Less", "The Missing Link Senior Supplement", "CoolDown"];
+        }
+
+    
+        let categoryUrls = {
+            "Maintenance Seasonal": "/collections/maintenance-seasonal",
+            "Maintenance Dry Conditions": "/collections/maintenance-dry-conditions",
+            "Maintenance Wet Conditions": "/collections/maintenance-wet-conditions",
+            "Maintenance Dry Conditions + Senior": "/collections/maintenance-dry-conditions-senior",
+            "Maintenance Wet Conditions + Senior": "/collections/maintenance-wet-conditions-senior",
+            "Pleasure Seasonal": "/collections/pleasure-seasonal",
+            "Pleasure Wet Conditions": "/collections/pleasure-wet-conditions",
+            "Pleasure Dry Conditions": "/collections/pleasure-dry-conditions",
+            "Pleasure Dry Conditions + Senior": "/collections/pleasure-dry-conditions-senior",
+            "default": "/collections/general"
+        };
+
+      // **Filter Collection Grid Correctly**
+        if ($(".collection-item").length > 0) {
+            $(".collection-item").hide(); // Hide all collections
+            let selectedCollection = $(`.collection-item[data-category="${category}"]`);
+            if (selectedCollection.length > 0) {
+                selectedCollection.fadeIn(); 
+             
+ // **Disable radio buttons to prevent further selection changes**
+        $("input[type='radio']").prop("disabled", true);
+
+              
+               $("html, body").animate({
+            scrollTop: $(".collection-products-grid").offset().top
+             }, 1000);
+
+
+              if ($("#edit_quiz").length === 0) {
+            $(".editButtonBox h4").after('<button id="edit_quiz" class="edit-button">Edit</button>');
+             }
+
+
+            //**Scroll back to quiz when "Edit" is clicked**
+            $(document).on("click", "#edit_quiz", function(){
+             
+                  $("html, body").animate({
+                      scrollTop: $(".quiz-container").offset().top
+                  }, 1000);
+              });
+
+
+              
+            } else {
+                console.log("No matching collection found, showing default.");
+                $(".collection-item[data-category='default']").fadeIn(); // Show default if no match
+            }
+        } else {
+            console.log("No collection items found.");
+        }
+      
+        
+     // **Event Listener for Edit Button**
+$(document).on("click", "#edit_quiz", function(){
+    // **Re-enable radio buttons for editing**
+    $("input[type='radio']").prop("disabled", false);
+   $(".ansWrapper").show();
+   $(".collection-item").hide();
+  
+   $("#edit_quiz").remove();
+    setTimeout(function(){
+            $(".ansWrapper").fadeIn();
+        }, 300);
+    // **Scroll back up to the quiz section**
+    $("html, body").animate({
+        scrollTop: $(".quiz-container").offset().top
+    }, 1000);
+});
+
+        $.ajax({
+            url: "/apps/quiz-email",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                email: email,
+                answers: answers,
+                category: category,
+                products: recommendedProducts,
+            }),
+            success: function(response){
+                console.log("Email sent successfully:", response);
+            },
+            error: function(error){
+                console.log("Error sending email:", error);
+            }
+        });
+    });
+
+
+
+    
+});
+
+
+</script>
+
+
+{% schema %}
+{
+  "name": "Quiz Section",
+  "settings": []
+}
+{% endschema %}
